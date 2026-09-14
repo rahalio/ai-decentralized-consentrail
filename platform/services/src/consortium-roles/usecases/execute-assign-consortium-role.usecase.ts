@@ -43,7 +43,12 @@ export class ExecuteAssignConsortiumRole {
     const memberId = (input as any).memberId;
 
     // Load entity via repository (pass correlation ID for response meta)
-    const entity = await this.consortiumRole.assignConsortiumRole({ memberId: memberId, orgId: this.context.getOrgId(), correlationId } as any);
+    const entity = await this.consortiumRole.assignConsortiumRole({
+      ...input,
+      memberId,
+      orgId: this.context.getOrgId(),
+      correlationId,
+    } as any);
     if (!entity) {
       throw new NotFoundError(`Entity not found: ${memberId}`);
     }

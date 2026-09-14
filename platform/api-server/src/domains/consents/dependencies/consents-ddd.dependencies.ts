@@ -65,6 +65,7 @@ export interface ConsentsDomainModule {
       create: ExecuteApproveOwnerMediationGrant;
     };
     consents: {
+      create: ExecuteCaptureConsent;
       get: ExecuteGetConsentRecord;
       list: ExecuteListConsentRecords;
     };
@@ -72,11 +73,13 @@ export interface ConsentsDomainModule {
       get: ExecuteDenyOwnerMediationGrant;
     };
     ownerMediationGrants: {
+      create: ExecuteRequestOwnerMediationGrant;
       get: ExecuteGetOwnerMediationGrant;
       list: ExecuteListOwnerMediationGrants;
     };
     processingStops: {
-      get: ExecuteRetryProcessingStopPush;
+      get: ExecuteGetProcessingStopState;
+      retry: ExecuteRetryProcessingStopPush;
     };
     withdraws: {
       get: ExecuteWithdrawConsent;
@@ -123,6 +126,7 @@ export function buildConsentsDomainModule(
       create: new ExecuteApproveOwnerMediationGrant(executionContext, idGenerator, repos.approves),
     },
     consents: {
+      create: new ExecuteCaptureConsent(executionContext, idGenerator, repos.consents),
       get: new ExecuteGetConsentRecord(executionContext, idGenerator, repos.consents),
       list: new ExecuteListConsentRecords(executionContext, idGenerator, repos.consents),
     },
@@ -130,11 +134,13 @@ export function buildConsentsDomainModule(
       get: new ExecuteDenyOwnerMediationGrant(executionContext, idGenerator, repos.denies),
     },
     ownerMediationGrants: {
+      create: new ExecuteRequestOwnerMediationGrant(executionContext, idGenerator, repos.ownerMediationGrants),
       get: new ExecuteGetOwnerMediationGrant(executionContext, idGenerator, repos.ownerMediationGrants),
       list: new ExecuteListOwnerMediationGrants(executionContext, idGenerator, repos.ownerMediationGrants),
     },
     processingStops: {
-      get: new ExecuteRetryProcessingStopPush(executionContext, idGenerator, repos.processingStops),
+      get: new ExecuteGetProcessingStopState(executionContext, idGenerator, repos.processingStops),
+      retry: new ExecuteRetryProcessingStopPush(executionContext, idGenerator, repos.processingStops),
     },
     withdraws: {
       get: new ExecuteWithdrawConsent(executionContext, idGenerator, repos.withdraws),

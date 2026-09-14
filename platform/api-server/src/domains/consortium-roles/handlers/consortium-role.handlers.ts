@@ -46,7 +46,7 @@ export async function assignConsortiumRole(
   const input: AssignConsortiumRoleInput = {
     ...(request.body ?? {}),
   };
-  const result = await deps.useCases.consortiumRoles.get.execute(input);
+  const result = await deps.useCases.consortiumRoles.create.execute(input);
   return reply.code(201).send(result);
 }
 

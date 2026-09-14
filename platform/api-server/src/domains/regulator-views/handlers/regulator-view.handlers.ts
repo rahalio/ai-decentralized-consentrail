@@ -46,7 +46,7 @@ export async function grantRegulatorView(
   const input: GrantRegulatorViewInput = {
     ...(request.body ?? {}),
   };
-  const result = await deps.useCases.regulatorViews.get.execute(input);
+  const result = await deps.useCases.regulatorViews.create.execute(input);
   return reply.code(201).send(result);
 }
 

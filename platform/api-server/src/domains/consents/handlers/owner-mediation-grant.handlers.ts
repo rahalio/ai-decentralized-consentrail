@@ -46,7 +46,7 @@ export async function requestOwnerMediationGrant(
   const input: RequestOwnerMediationGrantInput = {
     ...(request.body ?? {}),
   };
-  const result = await deps.useCases.ownerMediationGrants.get.execute(input);
+  const result = await deps.useCases.ownerMediationGrants.create.execute(input);
   return reply.code(201).send(result);
 }
 

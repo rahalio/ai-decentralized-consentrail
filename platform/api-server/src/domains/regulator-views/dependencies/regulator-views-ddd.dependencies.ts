@@ -43,6 +43,7 @@ export interface RegulatorViewsDomainModule {
   };
   useCases: {
     regulatorViews: {
+      create: ExecuteGrantRegulatorView;
       get: ExecuteGetRegulatorView;
       list: ExecuteListRegulatorViews;
     };
@@ -76,6 +77,7 @@ export function buildRegulatorViewsDomainModule(
   // Use cases depend only on ports (repos.*)
   const useCases = {
     regulatorViews: {
+      create: new ExecuteGrantRegulatorView(executionContext, idGenerator, repos.regulatorViews),
       get: new ExecuteGetRegulatorView(executionContext, idGenerator, repos.regulatorViews),
       list: new ExecuteListRegulatorViews(executionContext, idGenerator, repos.regulatorViews),
     },

@@ -1,4 +1,4 @@
-# Codegen guide
+# Codegen guide (Consentrail)
 
 ## Modes
 
@@ -14,28 +14,20 @@ pnpm codegen:paths
 pnpm lint:openapi
 pnpm bundle:openapi
 pnpm codegen:core
-pnpm codegen:identity   # full identity scaffold (starter)
+pnpm codegen:all          # Mode A for enabled domains (use carefully)
 ```
 
-Config: `.codegen/.zero-codegen-merged.json`  
+Config: `.codegen/.zero-codegen-merged.json` (local-only — never commit; see `consentrail-codegen-guard` skill)  
 Tool: `PYTHONPATH=.codegen/codegen/src python3 -m zero_codegen.cli.main`
 
-## OpenAPI sample shape
+## Domains
 
-- `packages/openapi-core/src/common/` — envelopes, problem, security, parameters, primitives
-- `packages/openapi-core/src/identity.yaml` — live sample domain
-- `.codegen/openapi-examples/` — teaching specs (not wired to Redocly)
+`identity` (shared auth) plus product domains under `packages/openapi-core/src/`: consents, rights, security-events, obligations, evidence, regulator-views, consortium-roles, counsel-gates, triple-blind-exchange.
 
-## Shared vs product
+## After Mode A
 
-| Shared (keep) | Product (add in consumer) |
-|---------------|---------------------------|
-| `_shared` dirs, middleware, messaging | Domain YAML + generated trees |
-| Identity domain | Invoice / orders / … domains |
-| Envelope + Problem contracts | Domain-specific schemas |
+Hand-fit api-server DI (`*-ddd.dependencies.ts`) so POST handlers call `useCases.*.create`, not `get`. Sandbox product adapters live under `platform/adapters/src/_shared/product-sandbox.ts`.
 
 ## Related skills
 
-- `ddd-platform` — architecture & anti-drift
-- `ddd-codegen` — pipeline commands
-- `ddd-identity` — auth blueprint
+- `ddd-platform`, `ddd-codegen`, `ddd-identity`, `consentrail-codegen-guard`

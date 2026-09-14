@@ -46,7 +46,7 @@ export async function openRightsCase(
   const input: OpenRightsCaseInput = {
     ...(request.body ?? {}),
   };
-  const result = await deps.useCases.cases.get.execute(input);
+  const result = await deps.useCases.cases.create.execute(input);
   return reply.code(201).send(result);
 }
 

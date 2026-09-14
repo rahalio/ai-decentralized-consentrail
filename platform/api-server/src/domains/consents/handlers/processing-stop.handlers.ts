@@ -46,7 +46,7 @@ export async function retryProcessingStopPush(
   const input: RetryProcessingStopPushInput = {
     consentId: request.params.consentId,
   };
-  const result = await deps.useCases.processingStops.get.execute(input);
+  const result = await deps.useCases.processingStops.retry.execute(input);
   return reply.code(200).send(result);
 }
 

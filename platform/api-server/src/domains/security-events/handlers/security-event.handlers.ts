@@ -46,7 +46,7 @@ export async function recordSecurityEvent(
   const input: RecordSecurityEventInput = {
     ...(request.body ?? {}),
   };
-  const result = await deps.useCases.securityEvents.get.execute(input);
+  const result = await deps.useCases.securityEvents.create.execute(input);
   return reply.code(201).send(result);
 }
 

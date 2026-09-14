@@ -46,7 +46,7 @@ export async function issueIntegrityProof(
   const input: IssueIntegrityProofInput = {
     ...(request.body ?? {}),
   };
-  const result = await deps.useCases.integrityProofs.get.execute(input);
+  const result = await deps.useCases.integrityProofs.create.execute(input);
   return reply.code(201).send(result);
 }
 

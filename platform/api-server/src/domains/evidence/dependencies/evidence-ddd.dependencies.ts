@@ -58,6 +58,7 @@ export interface EvidenceDomainModule {
       list: ExecuteListEvidenceHashes;
     };
     integrityProofs: {
+      create: ExecuteIssueIntegrityProof;
       get: ExecuteGetIntegrityProof;
       list: ExecuteListIntegrityProofs;
     };
@@ -105,6 +106,7 @@ export function buildEvidenceDomainModule(
       list: new ExecuteListEvidenceHashes(executionContext, idGenerator, repos.hashes),
     },
     integrityProofs: {
+      create: new ExecuteIssueIntegrityProof(executionContext, idGenerator, repos.integrityProofs),
       get: new ExecuteGetIntegrityProof(executionContext, idGenerator, repos.integrityProofs),
       list: new ExecuteListIntegrityProofs(executionContext, idGenerator, repos.integrityProofs),
     },

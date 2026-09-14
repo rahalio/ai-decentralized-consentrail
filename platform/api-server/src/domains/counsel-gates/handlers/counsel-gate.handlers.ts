@@ -46,7 +46,7 @@ export async function openCounselGate(
   const input: OpenCounselGateInput = {
     ...(request.body ?? {}),
   };
-  const result = await deps.useCases.counselGates.get.execute(input);
+  const result = await deps.useCases.counselGates.create.execute(input);
   return reply.code(201).send(result);
 }
 

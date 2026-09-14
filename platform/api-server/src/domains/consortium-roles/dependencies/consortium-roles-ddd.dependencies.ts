@@ -50,6 +50,7 @@ export interface ConsortiumRolesDomainModule {
       get: ExecuteAttestConsortiumRole;
     };
     consortiumRoles: {
+      create: ExecuteAssignConsortiumRole;
       get: ExecuteGetConsortiumRole;
       list: ExecuteListConsortiumRoles;
     };
@@ -89,6 +90,7 @@ export function buildConsortiumRolesDomainModule(
       get: new ExecuteAttestConsortiumRole(executionContext, idGenerator, repos.attests),
     },
     consortiumRoles: {
+      create: new ExecuteAssignConsortiumRole(executionContext, idGenerator, repos.consortiumRoles),
       get: new ExecuteGetConsortiumRole(executionContext, idGenerator, repos.consortiumRoles),
       list: new ExecuteListConsortiumRoles(executionContext, idGenerator, repos.consortiumRoles),
     },

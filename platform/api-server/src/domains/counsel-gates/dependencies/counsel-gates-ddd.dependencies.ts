@@ -43,6 +43,7 @@ export interface CounselGatesDomainModule {
   };
   useCases: {
     counselGates: {
+      create: ExecuteOpenCounselGate;
       get: ExecuteGetCounselGate;
       list: ExecuteListCounselGates;
     };
@@ -76,6 +77,7 @@ export function buildCounselGatesDomainModule(
   // Use cases depend only on ports (repos.*)
   const useCases = {
     counselGates: {
+      create: new ExecuteOpenCounselGate(executionContext, idGenerator, repos.counselGates),
       get: new ExecuteGetCounselGate(executionContext, idGenerator, repos.counselGates),
       list: new ExecuteListCounselGates(executionContext, idGenerator, repos.counselGates),
     },

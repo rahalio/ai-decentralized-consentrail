@@ -46,6 +46,7 @@ export interface SecurityEventsDomainModule {
       get: ExecuteAcknowledgeSecurityEvent;
     };
     securityEvents: {
+      create: ExecuteRecordSecurityEvent;
       get: ExecuteGetSecurityEvent;
       list: ExecuteListSecurityEvents;
     };
@@ -79,6 +80,7 @@ export function buildSecurityEventsDomainModule(
       get: new ExecuteAcknowledgeSecurityEvent(executionContext, idGenerator, repos.acknowledges),
     },
     securityEvents: {
+      create: new ExecuteRecordSecurityEvent(executionContext, idGenerator, repos.securityEvents),
       get: new ExecuteGetSecurityEvent(executionContext, idGenerator, repos.securityEvents),
       list: new ExecuteListSecurityEvents(executionContext, idGenerator, repos.securityEvents),
     },

@@ -47,6 +47,7 @@ export interface RightsDomainModule {
   };
   useCases: {
     cases: {
+      create: ExecuteOpenRightsCase;
       get: ExecuteGetRightsCase;
       list: ExecuteListRightsCases;
     };
@@ -86,6 +87,7 @@ export function buildRightsDomainModule(
   // Use cases depend only on ports (repos.*)
   const useCases = {
     cases: {
+      create: new ExecuteOpenRightsCase(executionContext, idGenerator, repos.cases),
       get: new ExecuteGetRightsCase(executionContext, idGenerator, repos.cases),
       list: new ExecuteListRightsCases(executionContext, idGenerator, repos.cases),
     },

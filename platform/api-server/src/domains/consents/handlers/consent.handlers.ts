@@ -46,7 +46,7 @@ export async function captureConsent(
   const input: CaptureConsentInput = {
     ...(request.body ?? {}),
   };
-  const result = await deps.useCases.consents.get.execute(input);
+  const result = await deps.useCases.consents.create.execute(input);
   return reply.code(201).send(result);
 }
 
