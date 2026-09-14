@@ -1,0 +1,17 @@
+---
+description: OpenAPI-first DDD codegen — core-only after YAML edits; full scaffold for new domains
+globs:
+  - packages/openapi-core/**/*
+  - packages/core/**/*
+  - platform/**/*
+  - .codegen/**/*
+alwaysApply: false
+---
+
+# DDD codegen (Consentrail)
+
+- **New domain:** full multi-layer generate once, then hand-fit platform.
+- **Existing domain YAML edit:** bundle → regenerate **`packages/core` only** → handwrite services/adapters/api-server/webapp.
+- Package scope: `@consentrail/*`. Config: `.codegen/.zero-codegen-merged.json` (run `pnpm codegen:paths`).
+- Skills: `ddd-platform`, `ddd-codegen`, `ddd-identity`, `consentrail-codegen-guard` under `.cursor/skills/`.
+- Do not regenerate adapters/services casually — sandbox + nested DI are hand-maintained after scaffold.

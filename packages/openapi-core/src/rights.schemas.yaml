@@ -1,0 +1,70 @@
+openapi: 3.1.0
+info:
+  title: Rights schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    RightsCaseId:
+      type: string
+      pattern: '^rgt_[0-9A-HJKMNP-TV-Z]{26}$'
+    RightsCaseType:
+      type: string
+      enum: [access, rectification, erasure, portability, breach_inform]
+    RightsCaseStatus:
+      type: string
+      enum: [open, in_review, counsel_hold, fulfilled, refused]
+    RightsCase:
+      type: object
+      required: [id, type, status, subjectRef, createdAt, updatedAt]
+      properties:
+        id: { $ref: '#/components/schemas/RightsCaseId' }
+        type: { $ref: '#/components/schemas/RightsCaseType' }
+        status: { $ref: '#/components/schemas/RightsCaseStatus' }
+        subjectRef: { type: string }
+        lawfulBasis: { type: string }
+        evidenceRefs:
+          type: array
+          items: { type: string }
+        counselGateId: { type: string }
+        slaDueAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    RightsCaseCreate:
+      type: object
+      required: [type, subjectRef]
+      properties:
+        type: { $ref: '#/components/schemas/RightsCaseType' }
+        subjectRef: { type: string }
+        slaDueAt: { type: string, format: date-time }
+    RightsCaseClose:
+      type: object
+      required: [outcome]
+      properties:
+        outcome:
+          type: string
+          enum: [fulfilled, refused]
+        lawfulBasis: { type: string }
+        evidenceRefs:
+          type: array
+          items: { type: string }
+    RightsCaseListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/RightsCase' }
+        nextCursor: { type: string }
+    RightsCaseResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/RightsCase' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    RightsCaseListResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/RightsCaseListData' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }

@@ -1,0 +1,88 @@
+openapi: 3.1.0
+info:
+  title: Evidence schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    EvidenceHashId:
+      type: string
+      pattern: '^evd_[0-9A-HJKMNP-TV-Z]{26}$'
+    IntegrityProofId:
+      type: string
+      pattern: '^prf_[0-9A-HJKMNP-TV-Z]{26}$'
+    EvidenceHash:
+      type: object
+      required: [id, hash, orphaned, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/EvidenceHashId' }
+        hash: { type: string, description: Content hash only; PD never stored. }
+        purpose: { type: string }
+        orphaned: { type: boolean }
+        relatedCaseId: { type: string }
+        createdAt: { type: string, format: date-time }
+    EvidenceHashCreate:
+      type: object
+      required: [hash]
+      properties:
+        hash: { type: string, minLength: 16 }
+        purpose: { type: string }
+        relatedCaseId: { type: string }
+        containsPersonalData:
+          type: boolean
+          description: Must be false; writes with true are rejected.
+          default: false
+    IntegrityProof:
+      type: object
+      required: [id, artefactRef, proof, issuedAt]
+      properties:
+        id: { $ref: '#/components/schemas/IntegrityProofId' }
+        artefactRef: { type: string }
+        proof: { type: string }
+        issuedAt: { type: string, format: date-time }
+        verified: { type: boolean }
+    IntegrityProofCreate:
+      type: object
+      required: [artefactRef]
+      properties:
+        artefactRef: { type: string }
+    EvidenceHashListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/EvidenceHash' }
+        nextCursor: { type: string }
+    IntegrityProofListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/IntegrityProof' }
+        nextCursor: { type: string }
+    EvidenceHashResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/EvidenceHash' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    EvidenceHashListResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/EvidenceHashListData' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    IntegrityProofResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/IntegrityProof' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    IntegrityProofListResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/IntegrityProofListData' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }

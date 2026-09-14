@@ -1,0 +1,215 @@
+openapi: 3.1.0
+info:
+  title: Rights API
+  version: 0.1.0
+  description: |
+    Data-subject rights cases: access, rectification, erasure, portability, breach inform (BR-4).
+  license:
+    name: Proprietary
+    url: https://consentrail.local/license
+  x-domain: rgt
+  x-domain-prefix: RG
+  x-product-slug: consentrail
+servers:
+  - url: https://api.consentrail.local
+    description: Local API
+security:
+  - apiKey: []
+tags:
+  - name: Rights
+    description: Rights case desk
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+
+paths:
+  /v1/rights-cases:
+    get:
+      operationId: listRightsCases
+      summary: list Rights Cases
+      tags: [Rights]
+      x-repository: RightsCase
+      x-dynamodb:
+        entityType: "RIGHTS_CASE"
+        pkPatternTemplate: "RIGHTS_CASE#${caseId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: type
+          in: query
+          schema:
+            $ref: ./rights.schemas.yaml#/components/schemas/RightsCaseType
+        - name: status
+          in: query
+          schema:
+            $ref: ./rights.schemas.yaml#/components/schemas/RightsCaseStatus
+      responses:
+        "200":
+          description: Cases
+          content:
+            application/json:
+              schema:
+                $ref: ./rights.schemas.yaml#/components/schemas/RightsCaseListResponse
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: openRightsCase
+      summary: open Rights Case
+      tags: [Rights]
+      x-repository: RightsCase
+      x-dynamodb:
+        entityType: "RIGHTS_CASE"
+        pkPatternTemplate: "RIGHTS_CASE#${caseId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./rights.schemas.yaml#/components/schemas/RightsCaseCreate
+      responses:
+        "201":
+          description: Opened
+          content:
+            application/json:
+              schema:
+                $ref: ./rights.schemas.yaml#/components/schemas/RightsCaseResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/rights-cases/{caseId}:
+    get:
+      operationId: getRightsCase
+      summary: get Rights Case
+      tags: [Rights]
+      x-repository: RightsCase
+      x-dynamodb:
+        entityType: "RIGHTS_CASE"
+        pkPatternTemplate: "RIGHTS_CASE#${caseId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            $ref: ./rights.schemas.yaml#/components/schemas/RightsCaseId
+      responses:
+        "200":
+          description: Case
+          content:
+            application/json:
+              schema:
+                $ref: ./rights.schemas.yaml#/components/schemas/RightsCaseResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/rights-cases/{caseId}/close:
+    post:
+      operationId: closeRightsCase
+      tags: [Rights]
+      summary: Close as fulfilled or lawful refusal
+      x-repository: RightsCase
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            $ref: ./rights.schemas.yaml#/components/schemas/RightsCaseId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./rights.schemas.yaml#/components/schemas/RightsCaseClose
+      responses:
+        "200":
+          description: Closed
+          content:
+            application/json:
+              schema:
+                $ref: ./rights.schemas.yaml#/components/schemas/RightsCaseResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/rights-cases/{caseId}/hand-to-counsel:
+    post:
+      operationId: handRightsCaseToCounsel
+      tags: [Rights]
+      summary: Send erasure case to counsel gate (BR-12)
+      x-repository: RightsCase
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            $ref: ./rights.schemas.yaml#/components/schemas/RightsCaseId
+      responses:
+        "200":
+          description: Routed to counsel
+          content:
+            application/json:
+              schema:
+                $ref: ./rights.schemas.yaml#/components/schemas/RightsCaseResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem

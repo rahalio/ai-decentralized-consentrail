@@ -1,0 +1,87 @@
+openapi: 3.1.0
+info:
+  title: Obligations schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    ObligationContractId:
+      type: string
+      pattern: '^obl_[0-9A-HJKMNP-TV-Z]{26}$'
+    ComplianceAlertId:
+      type: string
+      pattern: '^alt_[0-9A-HJKMNP-TV-Z]{26}$'
+    ObligationContract:
+      type: object
+      required: [id, controllerId, processorId, createdAt, updatedAt]
+      properties:
+        id: { $ref: '#/components/schemas/ObligationContractId' }
+        controllerId: { type: string }
+        processorId: { type: string }
+        termsHash: { type: string }
+        lastEvaluation: { type: string, enum: [compliant, breach, unevaluated] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    ObligationContractCreate:
+      type: object
+      required: [controllerId, processorId, termsHash]
+      properties:
+        controllerId: { type: string }
+        processorId: { type: string }
+        termsHash: { type: string }
+    ComplianceAlert:
+      type: object
+      required: [id, contractId, status, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/ComplianceAlertId' }
+        contractId: { $ref: '#/components/schemas/ObligationContractId' }
+        status: { type: string, enum: [compliant, breach, waived] }
+        detail: { type: string }
+        waivedUntil: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+    WaiverRequest:
+      type: object
+      required: [note]
+      properties:
+        note: { type: string }
+        expiresAt: { type: string, format: date-time }
+    ObligationContractListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ObligationContract' }
+        nextCursor: { type: string }
+    ComplianceAlertListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ComplianceAlert' }
+        nextCursor: { type: string }
+    ObligationContractResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/ObligationContract' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    ObligationContractListResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/ObligationContractListData' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    ComplianceAlertResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/ComplianceAlert' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    ComplianceAlertListResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/ComplianceAlertListData' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }

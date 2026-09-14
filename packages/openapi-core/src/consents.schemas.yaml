@@ -1,0 +1,129 @@
+openapi: 3.1.0
+info:
+  title: Consents schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    ConsentId:
+      type: string
+      pattern: '^cns_[0-9A-HJKMNP-TV-Z]{26}$'
+    GrantId:
+      type: string
+      pattern: '^omg_[0-9A-HJKMNP-TV-Z]{26}$'
+    ConsentStatus:
+      type: string
+      enum: [active, withdrawn]
+    ConsentRecord:
+      type: object
+      required: [id, subjectRef, purpose, status, processingStop, createdAt, updatedAt]
+      properties:
+        id: { $ref: '#/components/schemas/ConsentId' }
+        subjectRef: { type: string, description: Off-chain subject reference (never PD). }
+        purpose: { type: string }
+        explicit: { type: boolean }
+        freelyGiven: { type: boolean }
+        informed: { type: boolean }
+        unambiguous: { type: boolean }
+        ownerMediated: { type: boolean }
+        status: { $ref: '#/components/schemas/ConsentStatus' }
+        processingStop: { type: boolean }
+        evidenceHashId: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    ConsentRecordCreate:
+      type: object
+      required: [subjectRef, purpose]
+      properties:
+        subjectRef: { type: string }
+        purpose: { type: string }
+        explicit: { type: boolean, default: false }
+        freelyGiven: { type: boolean, default: true }
+        informed: { type: boolean, default: true }
+        unambiguous: { type: boolean, default: true }
+        ownerMediated: { type: boolean, default: false }
+    MemberAck:
+      type: object
+      required: [memberId, acknowledged]
+      properties:
+        memberId: { type: string }
+        acknowledged: { type: boolean }
+        acknowledgedAt: { type: string, format: date-time }
+        lastError: { type: string }
+    ProcessingStopState:
+      type: object
+      required: [consentId, processingStop, members]
+      properties:
+        consentId: { $ref: '#/components/schemas/ConsentId' }
+        processingStop: { type: boolean }
+        members:
+          type: array
+          items: { $ref: '#/components/schemas/MemberAck' }
+    OwnerMediationGrant:
+      type: object
+      required: [id, consentId, requestingMemberId, status, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/GrantId' }
+        consentId: { $ref: '#/components/schemas/ConsentId' }
+        requestingMemberId: { type: string }
+        scope: { type: string }
+        status:
+          type: string
+          enum: [pending, approved, denied, expired]
+        decidedAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+    OwnerMediationGrantCreate:
+      type: object
+      required: [consentId, requestingMemberId]
+      properties:
+        consentId: { $ref: '#/components/schemas/ConsentId' }
+        requestingMemberId: { type: string }
+        scope: { type: string }
+        expiresAt: { type: string, format: date-time }
+    ConsentRecordListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ConsentRecord' }
+        nextCursor: { type: string }
+    GrantListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/OwnerMediationGrant' }
+        nextCursor: { type: string }
+    ConsentRecordResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/ConsentRecord' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    ConsentRecordListResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/ConsentRecordListData' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    ProcessingStopResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/ProcessingStopState' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    OwnerMediationGrantResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/OwnerMediationGrant' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    OwnerMediationGrantListResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/GrantListData' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }

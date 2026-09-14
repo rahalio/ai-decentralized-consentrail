@@ -1,0 +1,69 @@
+/**
+ * Counsel Gates Domain Types
+ *
+ * Auto-generated from OpenAPI spec
+ * Generator: types-generator v2.0.0
+ *
+ * This file re-exports types from generated OpenAPI types and adds
+ * convenient type aliases for handlers (response types, etc.)
+ *
+ * ⚠️ DO NOT EDIT MANUALLY - this file is auto-generated
+ */
+
+import type { components, operations } from "../openapi/counsel-gates.openapi.types";
+
+// ============================================================================
+// Re-export all generated types
+// ============================================================================
+// Note: components and operations are exported here but should be accessed via namespace
+// in main index.ts to avoid duplicate export errors (e.g., blockchain.types.components)
+
+export type { components, operations };
+
+
+// ============================================================================
+// Convenient Type Aliases for Schemas
+// ============================================================================
+
+export type CounselDecision = components["schemas"]["CounselDecision"];
+export type CounselGate = components["schemas"]["CounselGate"];
+export type CounselGateCreate = components["schemas"]["CounselGateCreate"];
+export type CounselGateId = components["schemas"]["CounselGateId"];
+export type CounselGateListData = components["schemas"]["CounselGateListData"];
+export type CounselGateStatus = components["schemas"]["CounselGateStatus"];
+
+
+// ============================================================================
+// Operation Input Types (Request Bodies)
+// ============================================================================
+
+// These types represent the input data for create/update operations
+
+export type OpenCounselGateRequestInput = NonNullable<operations["openCounselGate"]["requestBody"]>["content"]["application/json"];
+export type DecideCounselGateRequestInput = NonNullable<operations["decideCounselGate"]["requestBody"]>["content"]["application/json"];
+
+
+// ============================================================================
+// Operation Parameter Types (Query/Path Parameters)
+// ============================================================================
+
+// These types represent parameters for operations without request bodies.
+// Aligned with get_input_schema_or_type_name for consistent naming across generators.
+
+export type ListCounselGatesParams = NonNullable<operations["listCounselGates"]["parameters"]["query"]>;
+export type GetCounselGateParams = operations["getCounselGate"]["parameters"]["path"];
+export type DecideCounselGateParams = operations["decideCounselGate"]["parameters"]["path"];
+
+
+// ============================================================================
+// Operation Response Types
+// ============================================================================
+
+// These types are used by handlers for type-safe response envelopes
+
+export type ListCounselGatesResponse = operations["listCounselGates"]["responses"]["200"]["content"]["application/json"];
+export type OpenCounselGateResponse = operations["openCounselGate"]["responses"]["201"]["content"]["application/json"];
+export type GetCounselGateResponse = operations["getCounselGate"]["responses"]["200"]["content"]["application/json"];
+export type DecideCounselGateResponse = operations["decideCounselGate"]["responses"]["200"]["content"]["application/json"];
+
+

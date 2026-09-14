@@ -1,0 +1,281 @@
+openapi: 3.1.0
+info:
+  title: Obligations API
+  version: 0.1.0
+  description: |
+    Controller/processor obligation contracts and Kimberley-style automated checks (BR-7).
+  license:
+    name: Proprietary
+    url: https://consentrail.local/license
+  x-domain: obl
+  x-domain-prefix: OB
+  x-product-slug: consentrail
+servers:
+  - url: https://api.consentrail.local
+    description: Local API
+security:
+  - apiKey: []
+tags:
+  - name: Obligations
+    description: Obligation contracts
+  - name: Alerts
+    description: Compliance alerts
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+
+paths:
+  /v1/obligations:
+    get:
+      operationId: listObligationContracts
+      summary: list Obligation Contracts
+      tags: [Obligations]
+      x-repository: ObligationContract
+      x-dynamodb:
+        entityType: "OBLIGATION"
+        pkPatternTemplate: "OBLIGATION#${contractId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        "200":
+          description: Contracts
+          content:
+            application/json:
+              schema:
+                $ref: ./obligations.schemas.yaml#/components/schemas/ObligationContractListResponse
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createObligationContract
+      summary: create Obligation Contract
+      tags: [Obligations]
+      x-repository: ObligationContract
+      x-dynamodb:
+        entityType: "OBLIGATION"
+        pkPatternTemplate: "OBLIGATION#${contractId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./obligations.schemas.yaml#/components/schemas/ObligationContractCreate
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./obligations.schemas.yaml#/components/schemas/ObligationContractResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/obligations/{contractId}:
+    get:
+      operationId: getObligationContract
+      summary: get Obligation Contract
+      tags: [Obligations]
+      x-repository: ObligationContract
+      x-dynamodb:
+        entityType: "OBLIGATION"
+        pkPatternTemplate: "OBLIGATION#${contractId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - name: contractId
+          in: path
+          required: true
+          schema:
+            $ref: ./obligations.schemas.yaml#/components/schemas/ObligationContractId
+      responses:
+        "200":
+          description: Contract
+          content:
+            application/json:
+              schema:
+                $ref: ./obligations.schemas.yaml#/components/schemas/ObligationContractResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/obligations/{contractId}/evaluate:
+    post:
+      operationId: evaluateObligationContract
+      summary: evaluate Obligation Contract
+      tags: [Obligations]
+      x-repository: ObligationContract
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: contractId
+          in: path
+          required: true
+          schema:
+            $ref: ./obligations.schemas.yaml#/components/schemas/ObligationContractId
+      responses:
+        "200":
+          description: Evaluation
+          content:
+            application/json:
+              schema:
+                $ref: ./obligations.schemas.yaml#/components/schemas/ComplianceAlertResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/compliance-alerts:
+    get:
+      operationId: listComplianceAlerts
+      summary: list Compliance Alerts
+      tags: [Alerts]
+      x-repository: ComplianceAlert
+      x-dynamodb:
+        entityType: "COMPLIANCE_ALERT"
+        pkPatternTemplate: "COMPLIANCE_ALERT#${alertId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: contractId
+          in: query
+          schema:
+            $ref: ./obligations.schemas.yaml#/components/schemas/ObligationContractId
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [compliant, breach, waived]
+      responses:
+        "200":
+          description: Alerts
+          content:
+            application/json:
+              schema:
+                $ref: ./obligations.schemas.yaml#/components/schemas/ComplianceAlertListResponse
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/compliance-alerts/{alertId}/acknowledge:
+    post:
+      operationId: acknowledgeComplianceAlert
+      summary: acknowledge Compliance Alert
+      tags: [Alerts]
+      x-repository: ComplianceAlert
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            $ref: ./obligations.schemas.yaml#/components/schemas/ComplianceAlertId
+      responses:
+        "200":
+          description: Acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: ./obligations.schemas.yaml#/components/schemas/ComplianceAlertResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/compliance-alerts/{alertId}/waive:
+    post:
+      operationId: waiveComplianceAlert
+      summary: waive Compliance Alert
+      tags: [Alerts]
+      x-repository: ComplianceAlert
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            $ref: ./obligations.schemas.yaml#/components/schemas/ComplianceAlertId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./obligations.schemas.yaml#/components/schemas/WaiverRequest
+      responses:
+        "200":
+          description: Waived
+          content:
+            application/json:
+              schema:
+                $ref: ./obligations.schemas.yaml#/components/schemas/ComplianceAlertResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem

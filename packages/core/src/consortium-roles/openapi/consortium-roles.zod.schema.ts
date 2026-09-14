@@ -1,0 +1,615 @@
+import { makeApi, Zodios, type ZodiosOptions } from '@zodios/core';
+import { z } from 'zod';
+
+const assignConsortiumRole_Body = z
+  .object({
+    kind: z.enum(['controller', 'processor', 'dpo', 'governor']),
+    memberId: z.string(),
+    contactRef: z.string().optional(),
+  })
+  .passthrough();
+const Problem = z
+  .object({
+    type: z.string().url(),
+    title: z.string(),
+    status: z.number().int(),
+    detail: z.string(),
+    instance: z.string().url(),
+    code: z.string(),
+  })
+  .partial()
+  .passthrough();
+const ConsortiumRoleId = z.string();
+const ConsortiumRoleKind = z.enum([
+  'controller',
+  'processor',
+  'dpo',
+  'governor',
+]);
+const ConsortiumRole = z
+  .object({
+    id: z.string().regex(/^cnr_[0-9A-HJKMNP-TV-Z]{26}$/),
+    kind: z.enum(['controller', 'processor', 'dpo', 'governor']),
+    memberId: z.string(),
+    contactRef: z.string().optional(),
+    attested: z.boolean(),
+    createdAt: z.string().datetime({ offset: true }),
+    updatedAt: z.string().datetime({ offset: true }),
+  })
+  .passthrough();
+const ConsortiumRoleListData = z
+  .object({
+    items: z.array(
+      z
+        .object({
+          id: z.string().regex(/^cnr_[0-9A-HJKMNP-TV-Z]{26}$/),
+          kind: z.enum(['controller', 'processor', 'dpo', 'governor']),
+          memberId: z.string(),
+          contactRef: z.string().optional(),
+          attested: z.boolean(),
+          createdAt: z.string().datetime({ offset: true }),
+          updatedAt: z.string().datetime({ offset: true }),
+        })
+        .passthrough()
+    ),
+    nextCursor: z.string().optional(),
+  })
+  .passthrough();
+const ResponseMeta = z
+  .object({
+    requestId: z.string().uuid(),
+    correlationId: z.string(),
+    generatedAt: z.string().datetime({ offset: true }),
+  })
+  .partial()
+  .passthrough();
+const ConsortiumRoleListResponse = z
+  .object({
+    data: z
+      .object({
+        items: z.array(
+          z
+            .object({
+              id: z.string().regex(/^cnr_[0-9A-HJKMNP-TV-Z]{26}$/),
+              kind: z.enum(['controller', 'processor', 'dpo', 'governor']),
+              memberId: z.string(),
+              contactRef: z.string().optional(),
+              attested: z.boolean(),
+              createdAt: z.string().datetime({ offset: true }),
+              updatedAt: z.string().datetime({ offset: true }),
+            })
+            .passthrough()
+        ),
+        nextCursor: z.string().optional(),
+      })
+      .passthrough(),
+    meta: z
+      .object({
+        requestId: z.string().uuid(),
+        correlationId: z.string(),
+        generatedAt: z.string().datetime({ offset: true }),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+const ConsortiumRoleCreate = z
+  .object({
+    kind: z.enum(['controller', 'processor', 'dpo', 'governor']),
+    memberId: z.string(),
+    contactRef: z.string().optional(),
+  })
+  .passthrough();
+const ConsortiumRoleResponse = z
+  .object({
+    data: z
+      .object({
+        id: z.string().regex(/^cnr_[0-9A-HJKMNP-TV-Z]{26}$/),
+        kind: z.enum(['controller', 'processor', 'dpo', 'governor']),
+        memberId: z.string(),
+        contactRef: z.string().optional(),
+        attested: z.boolean(),
+        createdAt: z.string().datetime({ offset: true }),
+        updatedAt: z.string().datetime({ offset: true }),
+      })
+      .passthrough(),
+    meta: z
+      .object({
+        requestId: z.string().uuid(),
+        correlationId: z.string(),
+        generatedAt: z.string().datetime({ offset: true }),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+const GoLiveGate = z
+  .object({ ready: z.boolean(), missing: z.array(z.string()) })
+  .passthrough();
+const GoLiveGateResponse = z
+  .object({
+    data: z
+      .object({ ready: z.boolean(), missing: z.array(z.string()) })
+      .passthrough(),
+    meta: z
+      .object({
+        requestId: z.string().uuid(),
+        correlationId: z.string(),
+        generatedAt: z.string().datetime({ offset: true }),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+
+export const schemas: any = {
+  assignConsortiumRole_Body,
+  Problem,
+  ConsortiumRoleId,
+  ConsortiumRoleKind,
+  ConsortiumRole,
+  ConsortiumRoleListData,
+  ResponseMeta,
+  ConsortiumRoleListResponse,
+  ConsortiumRoleCreate,
+  ConsortiumRoleResponse,
+  GoLiveGate,
+  GoLiveGateResponse,
+};
+
+const endpoints = makeApi([
+  {
+    method: 'get',
+    path: '/v1/consortium-roles',
+    alias: 'listConsortiumRoles',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'cursor',
+        type: 'Query',
+        schema: z.string().optional(),
+      },
+      {
+        name: 'limit',
+        type: 'Query',
+        schema: z.number().int().gte(1).lte(100).optional().default(25),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            items: z.array(
+              z
+                .object({
+                  id: z.string().regex(/^cnr_[0-9A-HJKMNP-TV-Z]{26}$/),
+                  kind: z.enum(['controller', 'processor', 'dpo', 'governor']),
+                  memberId: z.string(),
+                  contactRef: z.string().optional(),
+                  attested: z.boolean(),
+                  createdAt: z.string().datetime({ offset: true }),
+                  updatedAt: z.string().datetime({ offset: true }),
+                })
+                .passthrough()
+            ),
+            nextCursor: z.string().optional(),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'post',
+    path: '/v1/consortium-roles',
+    alias: 'assignConsortiumRole',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'body',
+        type: 'Body',
+        schema: assignConsortiumRole_Body,
+      },
+      {
+        name: 'Idempotency-Key',
+        type: 'Header',
+        schema: z.string().min(1).max(128),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            id: z.string().regex(/^cnr_[0-9A-HJKMNP-TV-Z]{26}$/),
+            kind: z.enum(['controller', 'processor', 'dpo', 'governor']),
+            memberId: z.string(),
+            contactRef: z.string().optional(),
+            attested: z.boolean(),
+            createdAt: z.string().datetime({ offset: true }),
+            updatedAt: z.string().datetime({ offset: true }),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 400,
+        description: `Malformed request`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 409,
+        description: `Idempotency key reuse with different body, or state conflict`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 422,
+        description: `Semantically invalid request (e.g. PACK_EMPTY)`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'get',
+    path: '/v1/consortium-roles/:roleId',
+    alias: 'getConsortiumRole',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'roleId',
+        type: 'Path',
+        schema: z.string().regex(/^cnr_[0-9A-HJKMNP-TV-Z]{26}$/),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            id: z.string().regex(/^cnr_[0-9A-HJKMNP-TV-Z]{26}$/),
+            kind: z.enum(['controller', 'processor', 'dpo', 'governor']),
+            memberId: z.string(),
+            contactRef: z.string().optional(),
+            attested: z.boolean(),
+            createdAt: z.string().datetime({ offset: true }),
+            updatedAt: z.string().datetime({ offset: true }),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 400,
+        description: `Malformed request`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 404,
+        description: `Resource not found`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 409,
+        description: `Idempotency key reuse with different body, or state conflict`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 422,
+        description: `Semantically invalid request (e.g. PACK_EMPTY)`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'post',
+    path: '/v1/consortium-roles/:roleId/attest',
+    alias: 'attestConsortiumRole',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'Idempotency-Key',
+        type: 'Header',
+        schema: z.string().min(1).max(128),
+      },
+      {
+        name: 'roleId',
+        type: 'Path',
+        schema: z.string().regex(/^cnr_[0-9A-HJKMNP-TV-Z]{26}$/),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            id: z.string().regex(/^cnr_[0-9A-HJKMNP-TV-Z]{26}$/),
+            kind: z.enum(['controller', 'processor', 'dpo', 'governor']),
+            memberId: z.string(),
+            contactRef: z.string().optional(),
+            attested: z.boolean(),
+            createdAt: z.string().datetime({ offset: true }),
+            updatedAt: z.string().datetime({ offset: true }),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 400,
+        description: `Malformed request`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 404,
+        description: `Resource not found`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 409,
+        description: `Idempotency key reuse with different body, or state conflict`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 422,
+        description: `Semantically invalid request (e.g. PACK_EMPTY)`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'get',
+    path: '/v1/consortium-roles/go-live-gate',
+    alias: 'getConsortiumGoLiveGate',
+    requestFormat: 'json',
+    response: z
+      .object({
+        data: z
+          .object({ ready: z.boolean(), missing: z.array(z.string()) })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+]);
+
+export const api: any = new Zodios(
+  'https://api.ddd-codegen-starter.local/v1',
+  endpoints
+);
+
+export function createApiClient(baseUrl: string, options?: ZodiosOptions): any {
+  return new Zodios(baseUrl, endpoints, options);
+}

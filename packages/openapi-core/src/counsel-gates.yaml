@@ -1,0 +1,178 @@
+openapi: 3.1.0
+info:
+  title: Counsel Gates API
+  version: 0.1.0
+  description: |
+    Legal hold and counsel review before erasure orphaning (BR-12).
+  license:
+    name: Proprietary
+    url: https://consentrail.local/license
+  x-domain: cng
+  x-domain-prefix: CG
+  x-product-slug: consentrail
+servers:
+  - url: https://api.consentrail.local
+    description: Local API
+security:
+  - apiKey: []
+tags:
+  - name: CounselGates
+    description: Erasure counsel inbox
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+
+paths:
+  /v1/counsel-gates:
+    get:
+      operationId: listCounselGates
+      summary: list Counsel Gates
+      tags: [CounselGates]
+      x-repository: CounselGate
+      x-dynamodb:
+        entityType: "COUNSEL_GATE"
+        pkPatternTemplate: "COUNSEL_GATE#${gateId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: status
+          in: query
+          schema:
+            $ref: ./counsel-gates.schemas.yaml#/components/schemas/CounselGateStatus
+      responses:
+        "200":
+          description: Gates
+          content:
+            application/json:
+              schema:
+                $ref: ./counsel-gates.schemas.yaml#/components/schemas/CounselGateListResponse
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: openCounselGate
+      summary: open Counsel Gate
+      tags: [CounselGates]
+      x-repository: CounselGate
+      x-dynamodb:
+        entityType: "COUNSEL_GATE"
+        pkPatternTemplate: "COUNSEL_GATE#${gateId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./counsel-gates.schemas.yaml#/components/schemas/CounselGateCreate
+      responses:
+        "201":
+          description: Opened
+          content:
+            application/json:
+              schema:
+                $ref: ./counsel-gates.schemas.yaml#/components/schemas/CounselGateResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/counsel-gates/{gateId}:
+    get:
+      operationId: getCounselGate
+      summary: get Counsel Gate
+      tags: [CounselGates]
+      x-repository: CounselGate
+      x-dynamodb:
+        entityType: "COUNSEL_GATE"
+        pkPatternTemplate: "COUNSEL_GATE#${gateId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - name: gateId
+          in: path
+          required: true
+          schema:
+            $ref: ./counsel-gates.schemas.yaml#/components/schemas/CounselGateId
+      responses:
+        "200":
+          description: Gate
+          content:
+            application/json:
+              schema:
+                $ref: ./counsel-gates.schemas.yaml#/components/schemas/CounselGateResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/counsel-gates/{gateId}/decide:
+    post:
+      operationId: decideCounselGate
+      summary: decide Counsel Gate
+      tags: [CounselGates]
+      x-repository: CounselGate
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: gateId
+          in: path
+          required: true
+          schema:
+            $ref: ./counsel-gates.schemas.yaml#/components/schemas/CounselGateId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./counsel-gates.schemas.yaml#/components/schemas/CounselDecision
+      responses:
+        "200":
+          description: Decision recorded
+          content:
+            application/json:
+              schema:
+                $ref: ./counsel-gates.schemas.yaml#/components/schemas/CounselGateResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem

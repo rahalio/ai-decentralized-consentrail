@@ -1,0 +1,52 @@
+openapi: 3.1.0
+info:
+  title: Regulator views schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    RegulatorViewId:
+      type: string
+      pattern: '^rgv_[0-9A-HJKMNP-TV-Z]{26}$'
+    RegulatorView:
+      type: object
+      required: [id, regulatorId, scope, includesPersonalData, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/RegulatorViewId' }
+        regulatorId: { type: string }
+        scope:
+          type: array
+          items: { type: string }
+        includesPersonalData:
+          type: boolean
+          description: Always false — views are proof-only.
+        status: { type: string, enum: [active, revoked] }
+        createdAt: { type: string, format: date-time }
+    RegulatorViewCreate:
+      type: object
+      required: [regulatorId, scope]
+      properties:
+        regulatorId: { type: string }
+        scope:
+          type: array
+          items: { type: string }
+    RegulatorViewListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/RegulatorView' }
+        nextCursor: { type: string }
+    RegulatorViewResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/RegulatorView' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    RegulatorViewListResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/RegulatorViewListData' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }

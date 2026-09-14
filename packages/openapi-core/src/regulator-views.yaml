@@ -1,0 +1,168 @@
+openapi: 3.1.0
+info:
+  title: Regulator Views API
+  version: 0.1.0
+  description: |
+    Near-real-time supervisor evidence slices without raw PD (BR-8).
+  license:
+    name: Proprietary
+    url: https://consentrail.local/license
+  x-domain: rgv
+  x-domain-prefix: RV
+  x-product-slug: consentrail
+servers:
+  - url: https://api.consentrail.local
+    description: Local API
+security:
+  - apiKey: []
+tags:
+  - name: RegulatorViews
+    description: Granted regulator views
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+
+paths:
+  /v1/regulator-views:
+    get:
+      operationId: listRegulatorViews
+      summary: list Regulator Views
+      tags: [RegulatorViews]
+      x-repository: RegulatorView
+      x-dynamodb:
+        entityType: "REGULATOR_VIEW"
+        pkPatternTemplate: "REGULATOR_VIEW#${viewId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        "200":
+          description: Views
+          content:
+            application/json:
+              schema:
+                $ref: ./regulator-views.schemas.yaml#/components/schemas/RegulatorViewListResponse
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: grantRegulatorView
+      summary: grant Regulator View
+      tags: [RegulatorViews]
+      x-repository: RegulatorView
+      x-dynamodb:
+        entityType: "REGULATOR_VIEW"
+        pkPatternTemplate: "REGULATOR_VIEW#${viewId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./regulator-views.schemas.yaml#/components/schemas/RegulatorViewCreate
+      responses:
+        "201":
+          description: Granted
+          content:
+            application/json:
+              schema:
+                $ref: ./regulator-views.schemas.yaml#/components/schemas/RegulatorViewResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/regulator-views/{viewId}:
+    get:
+      operationId: getRegulatorView
+      summary: get Regulator View
+      tags: [RegulatorViews]
+      x-repository: RegulatorView
+      x-dynamodb:
+        entityType: "REGULATOR_VIEW"
+        pkPatternTemplate: "REGULATOR_VIEW#${viewId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - name: viewId
+          in: path
+          required: true
+          schema:
+            $ref: ./regulator-views.schemas.yaml#/components/schemas/RegulatorViewId
+      responses:
+        "200":
+          description: View (proof columns only)
+          content:
+            application/json:
+              schema:
+                $ref: ./regulator-views.schemas.yaml#/components/schemas/RegulatorViewResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/regulator-views/{viewId}/revoke:
+    post:
+      operationId: revokeRegulatorView
+      summary: revoke Regulator View
+      tags: [RegulatorViews]
+      x-repository: RegulatorView
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: viewId
+          in: path
+          required: true
+          schema:
+            $ref: ./regulator-views.schemas.yaml#/components/schemas/RegulatorViewId
+      responses:
+        "200":
+          description: Revoked
+          content:
+            application/json:
+              schema:
+                $ref: ./regulator-views.schemas.yaml#/components/schemas/RegulatorViewResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem

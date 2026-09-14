@@ -1,0 +1,58 @@
+openapi: 3.1.0
+info:
+  title: Counsel gates schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    CounselGateId:
+      type: string
+      pattern: '^cng_[0-9A-HJKMNP-TV-Z]{26}$'
+    CounselGateStatus:
+      type: string
+      enum: [pending, legal_hold, approved_orphan, refused]
+    CounselGate:
+      type: object
+      required: [id, rightsCaseId, status, createdAt, updatedAt]
+      properties:
+        id: { $ref: '#/components/schemas/CounselGateId' }
+        rightsCaseId: { type: string }
+        evidenceHashId: { type: string }
+        status: { $ref: '#/components/schemas/CounselGateStatus' }
+        basis: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CounselGateCreate:
+      type: object
+      required: [rightsCaseId]
+      properties:
+        rightsCaseId: { type: string }
+        evidenceHashId: { type: string }
+    CounselDecision:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          type: string
+          enum: [approve_orphan, refuse, legal_hold]
+        basis: { type: string }
+    CounselGateListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/CounselGate' }
+        nextCursor: { type: string }
+    CounselGateResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/CounselGate' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    CounselGateListResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/CounselGateListData' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }

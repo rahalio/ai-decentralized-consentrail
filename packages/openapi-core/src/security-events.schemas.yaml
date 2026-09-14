@@ -1,0 +1,52 @@
+openapi: 3.1.0
+info:
+  title: Security events schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    SecurityEventId:
+      type: string
+      pattern: '^sec_[0-9A-HJKMNP-TV-Z]{26}$'
+    SecurityEventKind:
+      type: string
+      enum: [access, key, participant_verify]
+    SecurityEvent:
+      type: object
+      required: [id, kind, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/SecurityEventId' }
+        kind: { $ref: '#/components/schemas/SecurityEventKind' }
+        participantId: { type: string }
+        appId: { type: string }
+        detail: { type: string }
+        acknowledged: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    SecurityEventCreate:
+      type: object
+      required: [kind]
+      properties:
+        kind: { $ref: '#/components/schemas/SecurityEventKind' }
+        participantId: { type: string }
+        appId: { type: string }
+        detail: { type: string }
+    SecurityEventListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/SecurityEvent' }
+        nextCursor: { type: string }
+    SecurityEventResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/SecurityEvent' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    SecurityEventListResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/SecurityEventListData' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }

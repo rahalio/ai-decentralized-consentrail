@@ -1,0 +1,178 @@
+openapi: 3.1.0
+info:
+  title: Security Events API
+  version: 0.1.0
+  description: |
+    Security of processing log: access, key events, participant verification (BR-6).
+  license:
+    name: Proprietary
+    url: https://consentrail.local/license
+  x-domain: sec
+  x-domain-prefix: SE
+  x-product-slug: consentrail
+servers:
+  - url: https://api.consentrail.local
+    description: Local API
+security:
+  - apiKey: []
+tags:
+  - name: SecurityEvents
+    description: Security-of-processing events
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+
+paths:
+  /v1/security-events:
+    get:
+      operationId: listSecurityEvents
+      summary: list Security Events
+      tags: [SecurityEvents]
+      x-repository: SecurityEvent
+      x-dynamodb:
+        entityType: "SECURITY_EVENT"
+        pkPatternTemplate: "SECURITY_EVENT#${eventId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: kind
+          in: query
+          schema:
+            $ref: ./security-events.schemas.yaml#/components/schemas/SecurityEventKind
+        - name: participantId
+          in: query
+          schema: { type: string }
+        - name: appId
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Events
+          content:
+            application/json:
+              schema:
+                $ref: ./security-events.schemas.yaml#/components/schemas/SecurityEventListResponse
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: recordSecurityEvent
+      summary: record Security Event
+      tags: [SecurityEvents]
+      x-repository: SecurityEvent
+      x-dynamodb:
+        entityType: "SECURITY_EVENT"
+        pkPatternTemplate: "SECURITY_EVENT#${eventId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./security-events.schemas.yaml#/components/schemas/SecurityEventCreate
+      responses:
+        "201":
+          description: Recorded
+          content:
+            application/json:
+              schema:
+                $ref: ./security-events.schemas.yaml#/components/schemas/SecurityEventResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/security-events/{eventId}:
+    get:
+      operationId: getSecurityEvent
+      summary: get Security Event
+      tags: [SecurityEvents]
+      x-repository: SecurityEvent
+      x-dynamodb:
+        entityType: "SECURITY_EVENT"
+        pkPatternTemplate: "SECURITY_EVENT#${eventId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            $ref: ./security-events.schemas.yaml#/components/schemas/SecurityEventId
+      responses:
+        "200":
+          description: Event
+          content:
+            application/json:
+              schema:
+                $ref: ./security-events.schemas.yaml#/components/schemas/SecurityEventResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/security-events/{eventId}/acknowledge:
+    post:
+      operationId: acknowledgeSecurityEvent
+      summary: acknowledge Security Event
+      tags: [SecurityEvents]
+      x-repository: SecurityEvent
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            $ref: ./security-events.schemas.yaml#/components/schemas/SecurityEventId
+      responses:
+        "200":
+          description: Acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: ./security-events.schemas.yaml#/components/schemas/SecurityEventResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem

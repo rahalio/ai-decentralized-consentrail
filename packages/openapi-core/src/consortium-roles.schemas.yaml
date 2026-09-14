@@ -1,0 +1,67 @@
+openapi: 3.1.0
+info:
+  title: Consortium roles schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    ConsortiumRoleId:
+      type: string
+      pattern: '^cnr_[0-9A-HJKMNP-TV-Z]{26}$'
+    ConsortiumRoleKind:
+      type: string
+      enum: [controller, processor, dpo, governor]
+    ConsortiumRole:
+      type: object
+      required: [id, kind, memberId, attested, createdAt, updatedAt]
+      properties:
+        id: { $ref: '#/components/schemas/ConsortiumRoleId' }
+        kind: { $ref: '#/components/schemas/ConsortiumRoleKind' }
+        memberId: { type: string }
+        contactRef:
+          type: string
+          description: Off-chain contact pointer (not personal data).
+        attested: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    ConsortiumRoleCreate:
+      type: object
+      required: [kind, memberId]
+      properties:
+        kind: { $ref: '#/components/schemas/ConsortiumRoleKind' }
+        memberId: { type: string }
+        contactRef: { type: string }
+    GoLiveGate:
+      type: object
+      required: [ready, missing]
+      properties:
+        ready: { type: boolean }
+        missing:
+          type: array
+          items: { type: string }
+    ConsortiumRoleListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ConsortiumRole' }
+        nextCursor: { type: string }
+    ConsortiumRoleResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/ConsortiumRole' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    ConsortiumRoleListResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/ConsortiumRoleListData' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    GoLiveGateResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/GoLiveGate' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }

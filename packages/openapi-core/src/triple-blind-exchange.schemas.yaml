@@ -1,0 +1,76 @@
+openapi: 3.1.0
+info:
+  title: Triple-blind exchange schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    TripleBlindPolicyId:
+      type: string
+      pattern: '^tbl_[0-9A-HJKMNP-TV-Z]{26}$'
+    TripleBlindPolicy:
+      type: object
+      required: [id, name, enabled, createdAt, updatedAt]
+      properties:
+        id: { $ref: '#/components/schemas/TripleBlindPolicyId' }
+        name: { type: string }
+        enabled: { type: boolean }
+        providerLearns:
+          type: array
+          items: { type: string }
+        consumerLearns:
+          type: array
+          items: { type: string }
+        operatorLearns:
+          type: array
+          items: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    TripleBlindPolicyCreate:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        providerLearns:
+          type: array
+          items: { type: string }
+        consumerLearns:
+          type: array
+          items: { type: string }
+        operatorLearns:
+          type: array
+          items: { type: string }
+    TripleBlindDryRun:
+      type: object
+      required: [ok, notes]
+      properties:
+        ok: { type: boolean }
+        notes:
+          type: array
+          items: { type: string }
+    TripleBlindPolicyListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/TripleBlindPolicy' }
+        nextCursor: { type: string }
+    TripleBlindPolicyResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/TripleBlindPolicy' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    TripleBlindPolicyListResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/TripleBlindPolicyListData' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }
+    TripleBlindDryRunResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/TripleBlindDryRun' }
+        meta: { $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta }

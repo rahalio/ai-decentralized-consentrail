@@ -1,0 +1,436 @@
+openapi: 3.1.0
+info:
+  title: Consents API
+  version: 0.1.0
+  description: |
+    Lawfulness of processing: consent capture, withdrawal, processing-stop flags, owner-mediated grants (BR-3, BR-9).
+  license:
+    name: Proprietary
+    url: https://consentrail.local/license
+  x-domain: cns
+  x-domain-prefix: CN
+  x-product-slug: consentrail
+servers:
+  - url: https://api.consentrail.local
+    description: Local API
+security:
+  - apiKey: []
+tags:
+  - name: Consents
+    description: Consent records
+  - name: OwnerMediation
+    description: Owner-mediated authorisations
+  - name: ProcessingStop
+    description: Member stop-flag acknowledgements
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+
+paths:
+  /v1/consents:
+    get:
+      operationId: listConsentRecords
+      tags: [Consents]
+      summary: List consent records (metadata only; no PD)
+      x-repository: ConsentRecord
+      x-dynamodb:
+        entityType: "CONSENT"
+        pkPatternTemplate: "CONSENT#${consentId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: status
+          in: query
+          schema:
+            $ref: ./consents.schemas.yaml#/components/schemas/ConsentStatus
+        - name: subjectRef
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Consent list
+          content:
+            application/json:
+              schema:
+                $ref: ./consents.schemas.yaml#/components/schemas/ConsentRecordListResponse
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: captureConsent
+      tags: [Consents]
+      summary: Capture freely given, specific, informed consent
+      x-repository: ConsentRecord
+      x-dynamodb:
+        entityType: "CONSENT"
+        pkPatternTemplate: "CONSENT#${consentId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./consents.schemas.yaml#/components/schemas/ConsentRecordCreate
+      responses:
+        "201":
+          description: Consent captured
+          content:
+            application/json:
+              schema:
+                $ref: ./consents.schemas.yaml#/components/schemas/ConsentRecordResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/consents/{consentId}:
+    get:
+      operationId: getConsentRecord
+      tags: [Consents]
+      summary: Get consent record by id
+      x-repository: ConsentRecord
+      x-dynamodb:
+        entityType: "CONSENT"
+        pkPatternTemplate: "CONSENT#${consentId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - name: consentId
+          in: path
+          required: true
+          schema:
+            $ref: ./consents.schemas.yaml#/components/schemas/ConsentId
+      responses:
+        "200":
+          description: Consent
+          content:
+            application/json:
+              schema:
+                $ref: ./consents.schemas.yaml#/components/schemas/ConsentRecordResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/consents/{consentId}/withdraw:
+    post:
+      operationId: withdrawConsent
+      tags: [Consents]
+      summary: Withdraw consent and raise processing-stop flags
+      x-repository: ConsentRecord
+      x-dynamodb:
+        entityType: "CONSENT"
+        pkPatternTemplate: "CONSENT#${consentId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: consentId
+          in: path
+          required: true
+          schema:
+            $ref: ./consents.schemas.yaml#/components/schemas/ConsentId
+      responses:
+        "200":
+          description: Consent withdrawn
+          content:
+            application/json:
+              schema:
+                $ref: ./consents.schemas.yaml#/components/schemas/ConsentRecordResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/consents/{consentId}/processing-stop:
+    get:
+      operationId: getProcessingStopState
+      tags: [ProcessingStop]
+      summary: Member acknowledgement matrix for withdrawal stop flags
+      x-repository: ConsentRecord
+      parameters:
+        - name: consentId
+          in: path
+          required: true
+          schema:
+            $ref: ./consents.schemas.yaml#/components/schemas/ConsentId
+      responses:
+        "200":
+          description: Stop-flag state
+          content:
+            application/json:
+              schema:
+                $ref: ./consents.schemas.yaml#/components/schemas/ProcessingStopResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: retryProcessingStopPush
+      tags: [ProcessingStop]
+      summary: Retry stop-flag push to members
+      x-repository: ConsentRecord
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: consentId
+          in: path
+          required: true
+          schema:
+            $ref: ./consents.schemas.yaml#/components/schemas/ConsentId
+      responses:
+        "200":
+          description: Retry accepted
+          content:
+            application/json:
+              schema:
+                $ref: ./consents.schemas.yaml#/components/schemas/ProcessingStopResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/owner-mediation-grants:
+    get:
+      operationId: listOwnerMediationGrants
+      tags: [OwnerMediation]
+      summary: List owner-mediated authorisations
+      x-repository: OwnerMediationGrant
+      x-dynamodb:
+        entityType: "OWNER_GRANT"
+        pkPatternTemplate: "OWNER_GRANT#${grantId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: consentId
+          in: query
+          schema:
+            $ref: ./consents.schemas.yaml#/components/schemas/ConsentId
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, denied, expired]
+      responses:
+        "200":
+          description: Grants
+          content:
+            application/json:
+              schema:
+                $ref: ./consents.schemas.yaml#/components/schemas/OwnerMediationGrantListResponse
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: requestOwnerMediationGrant
+      tags: [OwnerMediation]
+      summary: Member requests subject authorisation before evidence flow
+      x-repository: OwnerMediationGrant
+      x-dynamodb:
+        entityType: "OWNER_GRANT"
+        pkPatternTemplate: "OWNER_GRANT#${grantId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./consents.schemas.yaml#/components/schemas/OwnerMediationGrantCreate
+      responses:
+        "201":
+          description: Grant pending
+          content:
+            application/json:
+              schema:
+                $ref: ./consents.schemas.yaml#/components/schemas/OwnerMediationGrantResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/owner-mediation-grants/{grantId}:
+    get:
+      operationId: getOwnerMediationGrant
+      summary: get Owner Mediation Grant
+      tags: [OwnerMediation]
+      x-repository: OwnerMediationGrant
+      x-dynamodb:
+        entityType: "OWNER_GRANT"
+        pkPatternTemplate: "OWNER_GRANT#${grantId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - name: grantId
+          in: path
+          required: true
+          schema:
+            $ref: ./consents.schemas.yaml#/components/schemas/GrantId
+      responses:
+        "200":
+          description: Grant
+          content:
+            application/json:
+              schema:
+                $ref: ./consents.schemas.yaml#/components/schemas/OwnerMediationGrantResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/owner-mediation-grants/{grantId}/approve:
+    post:
+      operationId: approveOwnerMediationGrant
+      summary: approve Owner Mediation Grant
+      tags: [OwnerMediation]
+      x-repository: OwnerMediationGrant
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: grantId
+          in: path
+          required: true
+          schema:
+            $ref: ./consents.schemas.yaml#/components/schemas/GrantId
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: ./consents.schemas.yaml#/components/schemas/OwnerMediationGrantResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/owner-mediation-grants/{grantId}/deny:
+    post:
+      operationId: denyOwnerMediationGrant
+      summary: deny Owner Mediation Grant
+      tags: [OwnerMediation]
+      x-repository: OwnerMediationGrant
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: grantId
+          in: path
+          required: true
+          schema:
+            $ref: ./consents.schemas.yaml#/components/schemas/GrantId
+      responses:
+        "200":
+          description: Denied
+          content:
+            application/json:
+              schema:
+                $ref: ./consents.schemas.yaml#/components/schemas/OwnerMediationGrantResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem

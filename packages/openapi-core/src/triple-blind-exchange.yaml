@@ -1,0 +1,234 @@
+openapi: 3.1.0
+info:
+  title: Triple-Blind Exchange API
+  version: 0.1.0
+  description: |
+    Configure attribute verification so parties learn only policy-allowed facts (BR-11).
+  license:
+    name: Proprietary
+    url: https://consentrail.local/license
+  x-domain: tbl
+  x-domain-prefix: TB
+  x-product-slug: consentrail
+servers:
+  - url: https://api.consentrail.local
+    description: Local API
+security:
+  - apiKey: []
+tags:
+  - name: TripleBlind
+    description: Triple-blind exchange policies
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+
+paths:
+  /v1/triple-blind-policies:
+    get:
+      operationId: listTripleBlindPolicies
+      summary: list Triple Blind Policies
+      tags: [TripleBlind]
+      x-repository: TripleBlindPolicy
+      x-dynamodb:
+        entityType: "TRIPLE_BLIND"
+        pkPatternTemplate: "TRIPLE_BLIND#${policyId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        "200":
+          description: Policies
+          content:
+            application/json:
+              schema:
+                $ref: ./triple-blind-exchange.schemas.yaml#/components/schemas/TripleBlindPolicyListResponse
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createTripleBlindPolicy
+      summary: create Triple Blind Policy
+      tags: [TripleBlind]
+      x-repository: TripleBlindPolicy
+      x-dynamodb:
+        entityType: "TRIPLE_BLIND"
+        pkPatternTemplate: "TRIPLE_BLIND#${policyId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./triple-blind-exchange.schemas.yaml#/components/schemas/TripleBlindPolicyCreate
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./triple-blind-exchange.schemas.yaml#/components/schemas/TripleBlindPolicyResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/triple-blind-policies/{policyId}:
+    get:
+      operationId: getTripleBlindPolicy
+      summary: get Triple Blind Policy
+      tags: [TripleBlind]
+      x-repository: TripleBlindPolicy
+      x-dynamodb:
+        entityType: "TRIPLE_BLIND"
+        pkPatternTemplate: "TRIPLE_BLIND#${policyId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: entity
+        usePkQuery: false
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            $ref: ./triple-blind-exchange.schemas.yaml#/components/schemas/TripleBlindPolicyId
+      responses:
+        "200":
+          description: Policy
+          content:
+            application/json:
+              schema:
+                $ref: ./triple-blind-exchange.schemas.yaml#/components/schemas/TripleBlindPolicyResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/triple-blind-policies/{policyId}/enable:
+    post:
+      operationId: enableTripleBlindPolicy
+      summary: enable Triple Blind Policy
+      tags: [TripleBlind]
+      x-repository: TripleBlindPolicy
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            $ref: ./triple-blind-exchange.schemas.yaml#/components/schemas/TripleBlindPolicyId
+      responses:
+        "200":
+          description: Enabled
+          content:
+            application/json:
+              schema:
+                $ref: ./triple-blind-exchange.schemas.yaml#/components/schemas/TripleBlindPolicyResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/triple-blind-policies/{policyId}/disable:
+    post:
+      operationId: disableTripleBlindPolicy
+      summary: disable Triple Blind Policy
+      tags: [TripleBlind]
+      x-repository: TripleBlindPolicy
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            $ref: ./triple-blind-exchange.schemas.yaml#/components/schemas/TripleBlindPolicyId
+      responses:
+        "200":
+          description: Disabled
+          content:
+            application/json:
+              schema:
+                $ref: ./triple-blind-exchange.schemas.yaml#/components/schemas/TripleBlindPolicyResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/triple-blind-policies/{policyId}/dry-run:
+    post:
+      operationId: dryRunTripleBlindPolicy
+      summary: dry Run Triple Blind Policy
+      tags: [TripleBlind]
+      x-repository: TripleBlindPolicy
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            $ref: ./triple-blind-exchange.schemas.yaml#/components/schemas/TripleBlindPolicyId
+      responses:
+        "200":
+          description: Dry-run result
+          content:
+            application/json:
+              schema:
+                $ref: ./triple-blind-exchange.schemas.yaml#/components/schemas/TripleBlindDryRunResponse
+        "400":
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        "401":
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        "404":
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        "409":
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        "422":
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
